@@ -7,7 +7,7 @@
   <url>https://github.com/MDK-Packs/Pack/raw/master/Azure_IoT/</url>
   <license>LICENSE.txt</license>
   <releases>
-    <release version="1.0.0">
+    <release version="1.0.0" date="2018-05-29">
       Initial release based on:
       - azure-iot-sdk-c 1.2.4
       - azure-uamqp-c 1.2.4
