@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Getting started with Microsoft Azure IoT and MDK</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="getting-started-with-microsoft-azure-iot-and-mdk">Getting started with Microsoft Azure IoT and MDK</h1>
+<p>This tutorial explains how to use <strong>MDK</strong> and the <strong>Azure_IoT_Device</strong> pack to connect your application to the Microsoft Azure IoT Hub.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<p>You require a development board with a device that is supported by <a href="http://arm-software.github.io/CMSIS_5/Driver/html/index.html">CMSIS-Drivers</a>. Lots of devices from STMicroelectronics and NXP do have these drivers available. Please consult the <a href="https://www.keil.com/dd2">device database</a> for a list of devices and development boards.</p>
+<p>When you have chosen your device and development board, use <img src="./static/icons/packinst.png" alt="Pack Installer" /><a href="https://www.keil.com/support/man/docs/uv4/uv4_ca_packinstaller.htm">Pack Installer</a> to download and install the following software packs:</p>
+<ul>
+<li><strong>MDK-Packs::Azure_IoT_Device</strong></li>
+<li><strong>MDK-Packs::IoT_Socket</strong> v1.0.0 or newer</li>
+<li><strong>ARM::CMSIS</strong> v5.0.1 or newer</li>
+<li><strong>ARM::mbedTLS</strong> v1.5.0 or newer</li>
+<li><strong>Keil::MDK-Middleware</strong> v7.7.0 or newer</li>
+<li>Device family pack for the selected device</li>
+</ul>
+<p><strong>Note</strong>:</p>
+<ul>
+<li>In order to be able to use the Microsoft Azure IoT Hub Connector, you require a MDK-Professional license. µVision allows you to start a <a href="http://www2.keil.com/mdk5/activation/">seven day trial</a> from within the tool.</li>
+<li>This tutorial assumes that you know how to work with µVision (creating projects, adding template code, configuring software components). If not, check out the <a href="https://armkeil.blob.core.windows.net/product/gs_MDK5_4_en.pdf">MDK Getting Started Guide</a>.</li>
+<li>In this tutorial, your MDK installation folder will be referenced as &lt;INSTALL_FOLDER&gt;. Usually, it is C:\Keil_v5.</li>
+</ul>
+<h2 id="in-the-microsoft-azure-portal">In the Microsoft Azure portal</h2>
+<h3 id="create-an-iot-hub">Create an IoT hub</h3>
+<ol type="1">
+<li>Sign in to the <a href="https://portal.azure.com/">Azure portal</a>.</li>
+<li>Select <strong>Create a resource</strong> &gt; <strong>Internet of Things</strong> &gt; <strong>IoT Hub</strong></li>
+<li>In the <strong>IoT hub</strong> pane, enter the following information for your IoT hub:
+<ul>
+<li><strong>Subscription</strong>: Choose the subscription that you want to use to create this IoT hub.</li>
+<li><strong>Resource group</strong>: Create a resource group to host the IoT hub or use an existing one. For more information, see <a href="https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-portal">Use resource groups to manage your Azure resources</a>.</li>
+<li><strong>Region</strong>: Select the closest location to you.</li>
+<li><strong>Name</strong>: Create a name for your IoT hub. If the name you enter is available, a green check mark appears.<br> <em>Important!</em><br> The IoT hub will be publicly discoverable as a DNS endpoint, so make sure to avoid any sensitive information while naming it.</li>
+</ul></li>
+<li>Select <strong>Next: Size and scale</strong> to continue creating your IoT hub.</li>
+<li>Choose your <strong>Pricing and scale tier</strong>. For this article, select the <strong>F1 - Free</strong> tier if it’s still available on your subscription. For more information, see the <a href="https://azure.microsoft.com/pricing/details/iot-hub/">Pricing and scale tier</a>.</li>
+<li>Select <strong>Review + create</strong>.</li>
+<li>Review your IoT hub information, then click <strong>Create</strong>. Your IoT hub might take a few minutes to create. You can monitor the progress in the <strong>Notifications</strong> pane.</li>
+</ol>
+<h3 id="register-a-device-in-the-iot-hub-for-your-device">Register a device in the IoT hub for your device</h3>
+<ol type="1">
+<li>In your IoT hub navigation menu, open <strong>IoT devices</strong>, then click <strong>Add</strong> to register a device in your IoT hub.</li>
+<li>Enter a <strong>Device ID</strong> for the new device. Device IDs are case sensitive.<br> <em>Important!</em><br> The device ID may be visible in the logs collected for customer support and troubleshooting, so make sure to avoid any sensitive information while naming it.</li>
+<li>Click <strong>Save</strong>.</li>
+<li>After the device is created, open the device from the list in the <strong>IoT devices</strong> pane.</li>
+<li>Copy the <strong>Connection string—primary key</strong> to use later.</li>
+</ol>
+<h2 id="in-µvision">In µVision</h2>
+<p>Follow these steps to create a simple application that connects to the Microsoft Azure IoT Hub.</p>
+<h3 id="create-project-and-select-software-components">Create project and select software components</h3>
+<ol type="1">
+<li>Create a new project. Select the device that you are using on your development board.</li>
+<li>The <img src="./static/icons/rte.png" alt="Manage RTE" /> Manage Run-Time Environment window opens. Select the following software components:
+<ul>
+<li><strong>IoT Client:Azure</strong></li>
+<li><strong>IoT Utility:Azure:MQTT</strong></li>
+<li><strong>IoT Utility:Azure:Common</strong></li>
+<li><strong>IoT Utility:Socket:MDK Network</strong></li>
+<li><strong>CMSIS:RTOS2:Keil RTX5</strong></li>
+<li><strong>CMSIS:CORE</strong></li>
+<li><strong>Security:mbed TLS</strong></li>
+<li><strong>Network:</strong> make sure to select the variant <strong>MDK-Pro</strong></li>
+<li><strong>Network:Socket:BSD</strong></li>
+<li><strong>Network:Socket:TCP</strong></li>
+<li><strong>Network:Socket:UDP</strong></li>
+<li><strong>Network:Service:DNS Client</strong></li>
+<li><strong>Network:Service:SNTP Client</strong></li>
+<li><strong>Network:Interface:ETH</strong></li>
+<li><strong>Network:CORE:IPv4 Release</strong></li>
+<li><strong>CMSIS Driver:Ethernet/MAC/PHY (API)</strong> (depending on your hardware)</li>
+<li><strong>Device:Startup</strong> (and any other Device dependent components)</li>
+</ul>
+Optional (for <code>printf</code> debug output on the console):
+<ul>
+<li><strong>Compiler:I/O:STDOUT:ITM</strong></li>
+</ul></li>
+</ol>
+<h3 id="configure-the-software-components">Configure the software components</h3>
+<ol type="1">
+<li>Configure the Azure IoT Client:
+<ul>
+<li>Open the <img src="./static/icons/oft.png" alt="Options for target" /> Options for target dialog (<strong>Alt+F7</strong>), go to the <strong>C/C++</strong> tab and add define <code>DONT_USE_UPLOADTOBLOB</code> to the C pre-processor.</li>
+</ul></li>
+<li>Configure mbedTLS: <strong>Security:mbedTLS_config.h</strong>
+<ul>
+<li>In the Project window, double-click this file to open it. It contains generic settings for mbed TLS and its configuration requires a thorough understanding of SSL/TLS. We have prepared an example file that contains all required settings for Azure IoT Hub. The file available in <code>&lt;INSTALL_FOLDER&gt;/ARM/Pack/MDK-Packs/Azure_IoT_Device/_version_/config/mbedTLS_config.h</code>. Copy its contents and replace everything in the project’s mbedTLS_config.h file.</li>
+</ul></li>
+<li>Configure Network:: <strong>Network:Net_Config_UDP.h</strong>
+<ul>
+<li>Increase the <strong>Number of UDP Sockets</strong> to at least 6.<br></li>
+</ul></li>
+<li>If you are using the software components described above, you do not need to configure other Network components. The default settings will work. If you do not have DHCP available in your network, please refer to the <a href="http://www.keil.com/pack/doc/mw/Network/html/index.html">MDK-Middleware documentation</a> on how to set a static IP address.</li>
+<li>Configure RTX5: <strong>CMSIS:RTX_Config.h</strong>
+<ul>
+<li>If you are using the provided template (see below), you need to set the <strong>System - Global Dynamic Memory size</strong> to at least 6144:<br> <img src="./static/images/rtx_config_h.png" alt="RTX_Config.h" /><br> This large amount of dynamic memory is not required for custom projects.</li>
+</ul></li>
+<li>Configure Heap: <strong>startup_&lt;device&gt;.s</strong>
+<ul>
+<li>Configure at least 48 KB (0xC000) of heap memory.<br> <img src="./static/images/heap.png" alt="Heap" /><br> This is required for the mbed TLS certificates.</li>
+</ul></li>
+<li>Configure device specific hardware:
+<ul>
+<li>Configure the CMSIS Ethernet driver and other device specific components (clock system, I/O, …) as required. Please consult your device’s/board’s documentation for more information.</li>
+</ul></li>
+</ol>
+<h3 id="add-template-code">Add Template code</h3>
+<p>The <strong>Azure_IoT_Device</strong> pack includes code samples that can be used to test the connection to Microsoft Azure IoT Hub. In the Project window, right-click “Source Group 1” and select “Add New Item to Group” - “User Code Template”, to add user code templates.</p>
+<ol type="1">
+<li>Telemetry sample code:
+<ul>
+<li>Add <strong>IoT Client:Azure:Telemetry sample</strong><br> <img src="./static/images/uct.png" alt="Heap" /><br></li>
+<li>Update the connection string constant <code>connectionString</code> with the <strong>Connection string—primary key</strong> obtained from Azure portal.</li>
+</ul></li>
+<li>Add <strong>CMSIS:RTOS2:Keil RTX5:main</strong> and update:
+<ul>
+<li>Add an attribute for an increased stack size for the application thread. Sample requires a thread stack size of 4 KB:<br> <code>const osThreadAttr_t app_main_attr = { .stack_size = 4096U };</code></li>
+<li>Change application thread creation (include the attribute defined above):<br> <code>osThreadNew(app_main, NULL, &amp;app_main_attr);</code></li>
+<li>Add an include for <code>time</code> and Network library (beginning of file):<br> <code>#inlcude &lt;time.h&gt;</code><br> <code>#inlcude &quot;rl_net.h&quot;</code></li>
+<li>Add a timer callback to handle current time 1 second increments:<br> <code>static uint32_t curr_time;</code><br><br> <code>static void timer_callback (void *argument) {</code><br>   <code>curr_time++;</code><br> <code>}</code></li>
+<li>Add <code>time</code> function:<br> <code>time_t time(time_t * timer) {</code><br>   <code>return (time_t)(curr_time);</code><br> <code>}</code></li>
+<li>Add a prototype for the example’s top level function:<br> <code>extern int demo (void);</code></li>
+<li>Add <code>time</code> and Network initialization in the <code>app_main</code> function:<br> <code>osTimerId_t timer_id;</code><br> <code>uint32_t addr;</code><br><br> <code>netInitialize();</code><br> <code>do {</code><br>   <code>osDelay(500U);</code><br>   <code>netIF_GetOption(NET_IF_CLASS_ETH | 0, netIF_OptionIP4_Address, (uint8_t *)&amp;addr, sizeof (addr));</code><br> <code>} while (addr == 0U);</code><br><br> <code>netSNTPc_GetTimeX(&quot;time.google.com&quot;, &amp;curr_time, NULL);</code><br> <code>timer_id = osTimerNew(timer_callback, osTimerPeriodic, NULL, NULL);</code><br> <code>osTimerStart(timer_id, 1000U);</code></li>
+<li>Add a call to the example’s top level function into the <code>app_main</code> function after above mentioned initialization (before the <code>for</code> loop):<br> <code>demo();</code></li>
+</ul></li>
+</ol>
+<h3 id="optional-configure-debug">Optional: Configure debug</h3>
+<p>Code templates are prepared to output <code>printf</code> statements for debugging purposes. To show these effectively, you can use the software component <strong>Compiler:I/O:STDOUT:ITM</strong> to show the messages in the <a href="http://www.keil.com/support/man/docs/uv4/uv4_db_dbg_serialwin.htm">Debug printf</a> window. To enable this output, do the following:</p>
+<ol type="1">
+<li>Open the <img src="./static/icons/oft.png" alt="Options for target" /> Options for target dialog (<strong>Alt+F7</strong>).</li>
+<li>Go to the <strong>Debug</strong> tab. Select the debug adapter that is connected to your target and configure these <strong>Settings</strong>:
+<ul>
+<li><strong>Debug</strong> tab: Set <strong>Port</strong> to <strong>SW</strong>.</li>
+<li><strong>Trace</strong> tab: Set the <strong>Core Clock</strong> to the system clock of your target, Select <strong>Trace Enable</strong> and set make sure that <strong>ITM Stimulus Port 0</strong> is enabled:<br> <img src="./static/images/debug_setup.png" alt="Debug Setup" /></li>
+</ul></li>
+</ol>
+<h3 id="rundebug-the-application">Run/debug the application</h3>
+<ol type="1">
+<li><img src="./static/icons/build.png" alt="Build target" /> Build the application (<strong>F7</strong>) and <img src="./static/icons/Flash.png" alt="Download to target" /> download (<strong>F8</strong>) to target.</li>
+<li><p>Enter <img src="./static/icons/debug.png" alt="Start/Stop Debug Session" /> debug (<strong>CTRL+F5</strong>) and <img src="./static/icons/run.png" alt="Run" /> run (<strong>F5</strong>) the application on the target and monitor the console output via <img src="./static/icons/uart_window.png" alt="Debug (printf) Viewer" /> <strong>Serial Window - Debug (printf) Viewer</strong>. You should see something similar:</p>
+<pre><code>Creating IoTHub handle
+Sending message 1 to IoTHub
+Sending message 2 to IoTHub
+Sending message 3 to IoTHub
+Sending message 4 to IoTHub
+Sending message 5 to IoTHub
+Confirmation callback received for message 1 with result IOTHUB_CLIENT_CONFIRMATION_OK
+Confirmation callback received for message 2 with result IOTHUB_CLIENT_CONFIRMATION_OK
+Confirmation callback received for message 3 with result IOTHUB_CLIENT_CONFIRMATION_OK
+Confirmation callback received for message 4 with result IOTHUB_CLIENT_CONFIRMATION_OK
+Confirmation callback received for message 5 with result IOTHUB_CLIENT_CONFIRMATION_OK
+Press any key to continue</code></pre></li>
+</ol>
+</body>
+</html>
