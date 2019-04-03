@@ -89,7 +89,7 @@ bool dns_async_is_lookup_complete(DNS_ASYNC_HANDLE dns_in)
             // synchronous implementation
             dns->is_complete = true;
 
-            ret = iotSocketGetHostByName(dns->hostname, IOT_SOCKET_AF_INET, &dns->ip_v4, &len);
+            ret = iotSocketGetHostByName(dns->hostname, IOT_SOCKET_AF_INET, (uint8_t*)&dns->ip_v4, &len);
 
             if (ret == 0)
             {

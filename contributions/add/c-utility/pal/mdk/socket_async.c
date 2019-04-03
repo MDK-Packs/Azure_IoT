@@ -97,7 +97,7 @@ SOCKET_ASYNC_HANDLE socket_async_create(uint32_t serverIPv4, uint16_t port,
             {
                 int connect_ret;
 
-                connect_ret = iotSocketConnect(sock, &serverIPv4, sizeof(serverIPv4), port);
+                connect_ret = iotSocketConnect(sock, (uint8_t*)&serverIPv4, sizeof(serverIPv4), port);
                 if (connect_ret < 0)
                 {
                     if (connect_ret != IOT_SOCKET_EINPROGRESS)
@@ -140,36 +140,29 @@ int socket_async_is_create_complete(SOCKET_ASYNC_HANDLE sock, bool* is_complete)
     }
     else
     {
-        uint32_t status;
-        int ret = iotSocketGetStatus(sock, &status);
-        if (ret == 0)
-        {
-            if (status & IOT_SOCKET_FLAG_ERROR)
-            {
-                /* Codes_SRS_SOCKET_ASYNC_30_028: [ On failure, the is_complete value shall be set to false and socket_async_create shall return FAILURE. ]*/
-                LogError("Socket is in error");
-                result = __FAILURE__;
-            }
-            else if (status & IOT_SOCKET_FLAG_WRITE)
-            {
-                /* Codes_SRS_SOCKET_ASYNC_30_027: [ On success, the is_complete value shall be set to the completion state and socket_async_create shall return 0. ]*/
-                // Ready to read
-                result = 0;
-                *is_complete = true;
-            }
-            else{
-                /* Codes_SRS_SOCKET_ASYNC_30_027: [ On success, the is_complete value shall be set to the completion state and socket_async_create shall return 0. ]*/
-                // Not ready yet
-                result = 0;
-                *is_complete = false;
-            }
-        }
-        else
-        {
-            /* Codes_SRS_SOCKET_ASYNC_30_028: [ On failure, the is_complete value shall be set to false and socket_async_create shall return FAILURE. ]*/
-            LogError("Socket select failed: %d", ret);
-            result = __FAILURE__;
-        }
+          uint8_t  ip[4];
+          uint32_t ip_len = sizeof(ip);
+          int ret = iotSocketGetPeerName(sock, &ip[0], &ip_len, NULL);
+          if (ret == 0)
+          {
+              /* Codes_SRS_SOCKET_ASYNC_30_027: [ On success, the is_complete value shall be set to the completion state and socket_async_create shall return 0. ]*/
+              // Socket is connected
+              result = 0;
+              *is_complete = true;
+          }
+          else if (ret == IOT_SOCKET_ENOTCONN)
+          {
+              /* Codes_SRS_SOCKET_ASYNC_30_027: [ On success, the is_complete value shall be set to the completion state and socket_async_create shall return 0. ]*/
+              // Socket is not connected
+              result = 0;
+              *is_complete = false;
+          }
+          else
+          {
+              /* Codes_SRS_SOCKET_ASYNC_30_028: [ On failure, the is_complete value shall be set to false and socket_async_create shall return FAILURE. ]*/
+              LogError("Socket getpeername failed: %d", ret);
+              result = __FAILURE__;
+          }
     }
     return result;
 }

@@ -157,7 +157,7 @@ echo "" >> $PACK_BUILD/serializer/src/datapublisher.c
 echo "" >> $PACK_BUILD/umqtt/inc/azure_umqtt_c/mqttconst.h
 
 # Run Pack Check and generate PackName file
-$UTILITIES_DIR/$UTILITIES_OS/PackChk.exe $PACK_BUILD/$PACK_VENDOR.$PACK_NAME.pdsc -n PackName.txt
+$UTILITIES_DIR/$UTILITIES_OS/PackChk.exe $PACK_BUILD/$PACK_VENDOR.$PACK_NAME.pdsc -n PackName.txt -x M362 -x M382
 errorlevel=$?
 
 if [ $errorlevel -ne 0 ]; then
