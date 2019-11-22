@@ -26,8 +26,9 @@
 #include "azure_c_shared_utility/crt_abstractions.h"
 #include "azure_c_shared_utility/shared_util_options.h"
 
-// DEPRECATED: debug functions do not belong in the tree.
-//#define MBED_TLS_DEBUG_ENABLE
+#ifndef MBEDTLS_DEBUG_LEVEL
+#define MBEDTLS_DEBUG_LEVEL 0
+#endif
 
 // The TLSIO_RECEIVE_BUFFER_SIZE has very little effect on performance, and is kept small
 // to minimize memory consumption.
@@ -69,6 +70,8 @@ typedef struct TLS_IO_INSTANCE_TAG
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config config;
     mbedtls_x509_crt trusted_certs;
+    mbedtls_x509_crt client_cert;
+    mbedtls_pk_context client_pkey;
     mbedtls_ssl_session ssn;
     DNS_ASYNC_HANDLE dns;
     char* hostname;
@@ -192,8 +195,7 @@ static int on_io_send(void *context, const unsigned char *buf, size_t sz)
     return result;
 }
 
-// DEPRECATED: debug functions do not belong in the tree.
-#if defined (MBED_TLS_DEBUG_ENABLE)
+#if (MBEDTLS_DEBUG_LEVEL > 0)
 void mbedtls_debug(void *ctx, int level, const char *file, int line, const char *str)
 {
     ((void)level);
@@ -227,6 +229,8 @@ static void mbedtls_init(void *instance, const char *host) {
     mbedtls_ssl_session_init(&result->ssn);
     mbedtls_ssl_config_init(&result->config);
     mbedtls_x509_crt_init(&result->trusted_certs);
+    mbedtls_x509_crt_init(&result->client_cert);
+    mbedtls_pk_init(&result->client_pkey);
     mbedtls_entropy_add_source(&result->entropy, tlsio_entropy_poll, NULL, 128, 0);
     mbedtls_ctr_drbg_seed(&result->ctr_drbg, mbedtls_entropy_func, &result->entropy, (const unsigned char *)pers, strlen(pers));
     mbedtls_ssl_config_defaults(&result->config, MBEDTLS_SSL_IS_CLIENT, MBEDTLS_SSL_TRANSPORT_STREAM, MBEDTLS_SSL_PRESET_DEFAULT);
@@ -237,10 +241,9 @@ static void mbedtls_init(void *instance, const char *host) {
     mbedtls_ssl_set_hostname(&result->ssl, host);
     mbedtls_ssl_set_session(&result->ssl, &result->ssn);
 
-    // DEPRECATED: debug functions do not belong in the tree.
-#if defined (MBED_TLS_DEBUG_ENABLE)
+#if (MBEDTLS_DEBUG_LEVEL > 0)
     mbedtls_ssl_conf_dbg(&result->config, mbedtls_debug, stdout);
-    mbedtls_debug_set_threshold(1);
+    mbedtls_debug_set_threshold(MBEDTLS_DEBUG_LEVEL);
 #endif
 
     mbedtls_ssl_setup(&result->ssl, &result->config);
@@ -286,7 +289,10 @@ CONCRETE_IO_HANDLE tlsio_mbedtls_create(void* io_create_parameters)
                 result->hostname = NULL;
                 result->dns = NULL;
                 result->pending_transmission_list = NULL;
-                tlsio_options_initialize(&result->options, TLSIO_OPTION_BIT_TRUSTED_CERTS);
+                tlsio_options_initialize(&result->options,
+                    TLSIO_OPTION_BIT_TRUSTED_CERTS |
+                    TLSIO_OPTION_BIT_x509_RSA_CERT |
+                    TLSIO_OPTION_BIT_x509_ECC_CERT);
                 ms_result = mallocAndStrcpy_s(&result->hostname, tls_io_config->hostname);
                 if (ms_result != 0)
                 {
@@ -324,6 +330,8 @@ static void internal_close(TLS_IO_INSTANCE* tls_io_instance)
     mbedtls_ssl_free(&tls_io_instance->ssl);
     mbedtls_ssl_config_free(&tls_io_instance->config);
     mbedtls_x509_crt_free(&tls_io_instance->trusted_certs);
+    mbedtls_x509_crt_free(&tls_io_instance->client_cert);
+    mbedtls_pk_free(&tls_io_instance->client_pkey);
     mbedtls_ctr_drbg_free(&tls_io_instance->ctr_drbg);
     mbedtls_entropy_free(&tls_io_instance->entropy);
 
@@ -793,14 +801,31 @@ int tlsio_mbedtls_setoption(CONCRETE_IO_HANDLE tls_io, const char* optionName, c
         }
         else
         {
+            result = 0;
             if (strcmp(OPTION_TRUSTED_CERT, optionName) == 0)
             {
-                if (mbedtls_x509_crt_parse(&tls_io_instance->trusted_certs, (const unsigned char *)tls_io_instance->options.trusted_certs, (int)(strlen(tls_io_instance->options.trusted_certs) + 1)) == 0)
+                result = mbedtls_x509_crt_parse(&tls_io_instance->trusted_certs, (const unsigned char *)tls_io_instance->options.trusted_certs, (int)(strlen(tls_io_instance->options.trusted_certs) + 1));
+                if (result == 0)
                 {
                     mbedtls_ssl_conf_ca_chain(&tls_io_instance->config, &tls_io_instance->trusted_certs, NULL);
                 }
             }
-            result = 0;
+            else if (strcmp(SU_OPTION_X509_CERT, optionName) == 0 || strcmp(OPTION_X509_ECC_CERT, optionName) == 0)
+            {
+                result = mbedtls_x509_crt_parse(&tls_io_instance->client_cert, (const unsigned char *)tls_io_instance->options.x509_cert, (int)(strlen(tls_io_instance->options.x509_cert) + 1));
+                if (result == 0)
+                {
+                    mbedtls_ssl_conf_own_cert(&tls_io_instance->config, &tls_io_instance->client_cert, &tls_io_instance->client_pkey);
+                }
+            }
+            else if (strcmp(SU_OPTION_X509_PRIVATE_KEY, optionName) == 0 || strcmp(OPTION_X509_ECC_KEY, optionName) == 0)
+            {
+                result = mbedtls_pk_parse_key(&tls_io_instance->client_pkey, (const unsigned char *)tls_io_instance->options.x509_key, (int)(strlen(tls_io_instance->options.x509_key) + 1), NULL, 0);
+                if (result == 0)
+                {
+                    mbedtls_ssl_conf_own_cert(&tls_io_instance->config, &tls_io_instance->client_cert, &tls_io_instance->client_pkey);
+                }
+            }
         }
     }
     return result;
