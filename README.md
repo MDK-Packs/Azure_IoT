@@ -2,18 +2,14 @@
 CMSIS Software Pack generator adding and merging contributions not yet available in upstream repo.
 
 ## Targeted public repositories (upstream): 
-Azure IoT SDKs and Libraries: https://github.com/Azure/azure-iot-sdk-c
-
-Azure C Shared Utility: https://github.com/Azure/azure-c-shared-utility
-
-Azure MQTT: https://github.com/Azure/azure-umqtt-c
-
-Azure uAMQP: https://github.com/Azure/azure-uamqp-c
-
-Parson: https://github.com/kgabis/parson
+- Azure IoT SDKs and Libraries: https://github.com/Azure/azure-iot-sdk-c
+- Azure C Shared Utility: https://github.com/Azure/azure-c-shared-utility
+- Azure MQTT: https://github.com/Azure/azure-umqtt-c
+- Azure uAMQP: https://github.com/Azure/azure-uamqp-c
+- Parson: https://github.com/kgabis/parson
 
 This repository provides a bash script to build a CMSIS-Pack. 
-It fetches a preconfigured version of the upstream repository, adds a set of
+It fetches a preconfigured version of the upstream repositories, adds a set of
 files contained in the directory named 'contributions', and creates a ZIP archive.  
 The contributions directory contains the subfolders:
 -- 'add': containing files for inclusion into the pack that are not (yet) present in the upstream repository  
