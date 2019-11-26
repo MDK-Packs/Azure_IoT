@@ -3,9 +3,13 @@ CMSIS Software Pack generator adding and merging contributions not yet available
 
 ## Targeted public repositories (upstream): 
 Azure IoT SDKs and Libraries: https://github.com/Azure/azure-iot-sdk-c
+
 Azure C Shared Utility: https://github.com/Azure/azure-c-shared-utility
+
 Azure MQTT: https://github.com/Azure/azure-umqtt-c
+
 Azure uAMQP: https://github.com/Azure/azure-uamqp-c
+
 Parson: https://github.com/kgabis/parson
 
 This repository provides a bash script to build a CMSIS-Pack. 
