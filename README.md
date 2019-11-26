@@ -11,16 +11,16 @@ CMSIS Software Pack generator adding and merging contributions not yet available
 This repository provides a bash script to build a CMSIS-Pack. 
 It fetches a preconfigured version of the upstream repositories, adds a set of
 files contained in the directory named 'contributions', and creates a ZIP archive.  
-The contributions directory contains the subfolders:
--- 'add': containing files for inclusion into the pack that are not (yet) present in the upstream repository  
+The contributions directory contains the subfolder:
+- 'add': containing files for inclusion into the pack that are not (yet) present in the upstream repository  
 
-The aim is to make the files from the 'add' folders part of the upstream repository via pull-requests. 
+The aim is to make the files from the 'add' folder part of the upstream repository via pull-requests. 
 Once all files are included in the upstream repository this repository will become obsolete.
 
 ## Prerequisites:
-- git bash (windows: https://gitforwindows.org/)
+- git bash (Windows: https://gitforwindows.org/)
 - ZIP archive creation utility (e.g. 7-Zip)
-- doxygen version 1.8.6 (https://sourceforge.net/projects/doxygen/files/rel-1.8.6/)
+- Doxygen version 1.8.6 (https://sourceforge.net/projects/doxygen/files/rel-1.8.6/)
 
 ## Configuration:
-In order to build the CMSIS-Pack, you need to run the bash shell script ./gen_pack.sh
+In order to build the CMSIS-Pack, you need to run the bash shell script `./gen_pack.sh`
