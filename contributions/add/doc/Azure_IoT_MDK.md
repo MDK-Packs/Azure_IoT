@@ -117,8 +117,8 @@ The **Azure_IoT_Device** pack includes code samples that can be used to test the
     * Change application thread creation (include the attribute defined above):<br>
       `osThreadNew(app_main, NULL, &app_main_attr);`
     * Add an include for `time` and Network library (beginning of file):<br>
-      `#inlcude <time.h>`<br>
-      `#inlcude "rl_net.h"`
+      `#include <time.h>`<br>
+      `#include "rl_net.h"`
     * Add a timer callback to handle current time 1 second increments:<br>
       `static uint32_t curr_time;`<br><br>
       `static void timer_callback (void *argument) {`<br>

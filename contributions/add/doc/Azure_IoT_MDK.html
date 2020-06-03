@@ -1315,7 +1315,7 @@ Optional (for <code>printf</code> debug output on the console):
 <ul>
 <li>Add an attribute for an increased stack size for the application thread. Sample requires a thread stack size of 4 KB:<br> <code>const osThreadAttr_t app_main_attr = { .stack_size = 4096U };</code></li>
 <li>Change application thread creation (include the attribute defined above):<br> <code>osThreadNew(app_main, NULL, &amp;app_main_attr);</code></li>
-<li>Add an include for <code>time</code> and Network library (beginning of file):<br> <code>#inlcude &lt;time.h&gt;</code><br> <code>#inlcude "rl_net.h"</code></li>
+<li>Add an include for <code>time</code> and Network library (beginning of file):<br> <code>#include &lt;time.h&gt;</code><br> <code>#include "rl_net.h"</code></li>
 <li>Add a timer callback to handle current time 1 second increments:<br> <code>static uint32_t curr_time;</code><br><br> <code>static void timer_callback (void *argument) {</code><br>   <code>curr_time++;</code><br> <code>}</code></li>
 <li>Add <code>time</code> function:<br> <code>time_t time(time_t * timer) {</code><br>   <code>return (time_t)(curr_time);</code><br> <code>}</code></li>
 <li>Add a prototype for the example’s top level function:<br> <code>extern int demo (void);</code></li>
