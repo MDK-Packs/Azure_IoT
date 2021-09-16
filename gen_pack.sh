@@ -20,7 +20,7 @@ UPSTREAM_UMQTT_TAG=1.1.4
 UPSTREAM_UTILITY_URL=https://api.github.com/repos/Azure/azure-c-shared-utility
 UPSTREAM_UTILITY_TAG=1.1.4
 UPSTREAM_PARSON_URL=https://api.github.com/repos/kgabis/parson
-UPSTREAM_PARSON_TAG=master
+UPSTREAM_PARSON_TAG=2be6991
 
 # Pack Vendor
 PACK_VENDOR=MDK-Packs
