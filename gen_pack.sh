@@ -1,14 +1,14 @@
 #!/bin/bash
-
-# Version: 1.0 
-# Date: 2018-05-25
+# Version: 1.2
+# Date: 2020-12-21
 # This bash script generates a CMSIS Software Pack:
 #
-# Requirements:
-# bash shell
-# curl
-# zip (zip archiving utility) 
-# 
+# Pre-requisites:
+# - bash shell (for Windows: install git for Windows)
+# - 7z in path (zip archiving utility)
+#   e.g. Ubuntu: sudo apt-get install p7zip-full p7zip-rar)
+# - PackChk is taken from latest install CMSIS Pack installed in $CMSIS_PACK_ROOT
+# - xmllint in path (XML schema validation; available only for Linux)
 
 # Upstream repositories
 UPSTREAM_SDK_URL=https://api.github.com/repos/Azure/azure-iot-sdk-c
@@ -22,43 +22,112 @@ UPSTREAM_UTILITY_TAG=1.1.4
 UPSTREAM_PARSON_URL=https://api.github.com/repos/kgabis/parson
 UPSTREAM_PARSON_TAG=2be6991
 
-# Pack Vendor
-PACK_VENDOR=MDK-Packs
-# Pack Name
-PACK_NAME=Azure_IoT
-
-# NO NEED TO EDIT BELOW
 # Contributions merge
 CONTRIB_MERGE=./contributions/merge
 # Contributions additional folders/files
 CONTRIB_ADD=./contributions/add
 
-# Pack Destination Folder
-PACK_DESTINATION=./
+############### EDIT BELOW ###############
+# Extend Path environment variable locally
+#
 
-# Pack Build Folder
+OS=$(uname -s)
+case $OS in
+  'Linux')
+    if [ -z ${CMSIS_PACK_ROOT+x} ] ; then
+      CMSIS_PACK_ROOT="/home/$USER/.arm/Packs"
+    fi
+    CMSIS_TOOLSDIR="$(ls -drv ${CMSIS_PACK_ROOT}/ARM/CMSIS/* | head -1)/CMSIS/Utilities/Linux64"
+    ;;
+  'WindowsNT'|MINGW*|CYGWIN*)
+    if [ -z ${CMSIS_PACK_ROOT+x} ] ; then
+      CMSIS_PACK_ROOT="$LOCALAPPDATA/Arm/Packs"
+    fi
+    CMSIS_PACK_ROOT="/$(echo ${CMSIS_PACK_ROOT} | sed -e 's/\\/\//g' -e 's/://g' -e 's/\"//g')"
+    CMSIS_TOOLSDIR="$(ls -drv ${CMSIS_PACK_ROOT}/ARM/CMSIS/* | head -1)/CMSIS/Utilities/Win32"
+    ;;
+  'Darwin') 
+    echo "Error: CMSIS Tools not available for Mac at present."
+    exit 1
+    ;;
+  *)
+    echo "Error: unrecognized OS $OS"
+    exit 1
+    ;;
+esac
+
+PATH_TO_ADD="$CMSIS_TOOLSDIR"
+
+[[ ":$PATH:" != *":$PATH_TO_ADD}:"* ]] && PATH="${PATH}:${PATH_TO_ADD}"
+echo $PATH_TO_ADD appended to PATH
+echo " "
+
+# Pack warehouse directory - destination 
+PACK_WAREHOUSE=./output
+
+# Temporary pack build directory
 PACK_BUILD=./build
 
-# Pack build utilities Repository
-UTILITIES_URL=https://github.com/ARM-software/CMSIS_5/blob/master/
-UTILITIES_TAG=1.0.0
-UTILITIES_DIR=./Utilities
-UTILITIES_OS=Win32
-if [ $UTILITIES_OS = "Win32" ]; then
-  ZIP="/c/Program\ Files/7-Zip/7z.exe"
-else
-  ZIP=zip
+############ DO NOT EDIT BELOW ###########
+echo Starting CMSIS-Pack Generation: `date`
+# Zip utility check 
+ZIP=7z
+type -a "${ZIP}"
+errorlevel=$?
+if [ $errorlevel -gt 0 ]
+  then
+  echo "Error: No 7zip Utility found"
+  echo "Action: Add 7zip to your path"
+  echo " "
+  exit
 fi
 
-# if not present, fetch utilities
-if [ ! -d $UTILITIES_DIR ]; then
-  mkdir $UTILITIES_DIR
-  pushd $UTILITIES_DIR
-  mkdir $UTILITIES_OS
-  # PackChk
-  curl -L $UTILITIES_URL/CMSIS/Utilities/$UTILITIES_OS/PackChk.exe?raw=true -o $UTILITIES_OS/PackChk.exe
-  popd
+# Pack checking utility check
+PACKCHK=PackChk
+type -a ${PACKCHK}
+errorlevel=$?
+if [ $errorlevel != 0 ]
+  then
+  echo "Error: No PackChk Utility found"
+  echo "Action: Add PackChk to your path"
+  echo "Hint: Included in CMSIS Pack:"
+  echo "$CMSIS_PACK_ROOT/ARM/CMSIS/<version>/CMSIS/Utilities/<os>/"
+  echo " "
+  exit
 fi
+echo " "
+
+# Locate Package Description file
+# check whether there is more than one pdsc file
+pushd $CONTRIB_ADD
+NUM_PDSCS=`ls -1 *.pdsc | wc -l`
+PACK_DESCRIPTION_FILE=`ls *.pdsc`
+popd
+if [ ${NUM_PDSCS} -lt 1 ]
+  then
+  echo "Error: No *.pdsc file found in current directory"
+  echo " "
+  exit
+elif [ ${NUM_PDSCS} -gt 1 ]
+  then
+  echo "Error: Only one PDSC file allowed in directory structure:"
+  echo "Found:"
+  echo "$PACK_DESCRIPTION_FILE"
+  echo "Action: Delete unused pdsc files"
+  echo " "
+  exit
+fi
+
+SAVEIFS=$IFS
+IFS=.
+set ${PACK_DESCRIPTION_FILE}
+# Pack Vendor
+PACK_VENDOR=$1
+# Pack Name
+PACK_NAME=$2
+echo "Generating Pack Version: for $PACK_VENDOR.$PACK_NAME"
+echo " "
+IFS=$SAVEIFS
 
 #if $PACK_BUILD folder does not exist create it and fetch content
 if [ ! -d $PACK_BUILD ]; then
@@ -131,6 +200,7 @@ rm -rf $PACK_BUILD/umqtt/deps
 rm -rf $PACK_BUILD/umqtt/jenkins
 rm -rf $PACK_BUILD/umqtt/tools
 
+\
 # Merge contributions into $PACK_BUILD
 # add (must not overwrite)
 cp -vr $CONTRIB_ADD/* $PACK_BUILD/
@@ -156,23 +226,54 @@ echo "" >> $PACK_BUILD/serializer/src/datamarshaller.c
 echo "" >> $PACK_BUILD/serializer/src/datapublisher.c
 echo "" >> $PACK_BUILD/umqtt/inc/azure_umqtt_c/mqttconst.h
 
-# Run Pack Check and generate PackName file
-$UTILITIES_DIR/$UTILITIES_OS/PackChk.exe $PACK_BUILD/$PACK_VENDOR.$PACK_NAME.pdsc -n PackName.txt -x M362 -x M382
-errorlevel=$?
+# Run Schema Check (for Linux only):
+# sudo apt-get install libxml2-utils
 
+if [ $(uname -s) = "Linux" ]
+  then
+  echo "Running schema check for ${PACK_VENDOR}.${PACK_NAME}.pdsc"
+  xmllint --noout --schema "${CMSIS_TOOLSDIR}/../PACK.xsd" "${PACK_BUILD}/${PACK_VENDOR}.${PACK_NAME}.pdsc"
+  errorlevel=$?
+  if [ $errorlevel -ne 0 ]; then
+    echo "build aborted: Schema check of $PACK_VENDOR.$PACK_NAME.pdsc against PACK.xsd failed"
+    echo " "
+    exit
+  fi
+else
+  echo "Use MDK PackInstaller to run schema validation for $PACK_VENDOR.$PACK_NAME.pdsc"
+fi
+
+# Run Pack Check and generate PackName file with version
+"${PACKCHK}" "${PACK_BUILD}/${PACK_VENDOR}.${PACK_NAME}.pdsc" \
+  -i "${CMSIS_PACK_ROOT}/.Web/ARM.CMSIS.pdsc" \
+  -i "${CMSIS_PACK_ROOT}/.Web/ARM.mbedTLS.pdsc" \
+  -i "${CMSIS_PACK_ROOT}/.Web/MDK-Packs.IoT_Socket.pdsc" \
+  -x M396 -x M382 \
+  -n PackName.txt
+errorlevel=$?
 if [ $errorlevel -ne 0 ]; then
   echo "build aborted: pack check failed"
+  echo " "
   exit
 fi
 
-PACKNAME=`cat PackName.txt`
+PACKNAME=$(cat PackName.txt)
 rm -rf PackName.txt
 
 # Archiving
 # $ZIP a $PACKNAME
-pushd $PACK_BUILD
-/c/Program\ Files/7-Zip/7z.exe a ../$PACKNAME -tzip
-popd
+echo "creating pack file $PACKNAME"
+#if $PACK_WAREHOUSE directory does not exist create it
+if [ ! -d "$PACK_WAREHOUSE" ]; then
+  mkdir -p "$PACK_WAREHOUSE"
+fi
+pushd "$PACK_WAREHOUSE" > /dev/null
+PACK_WAREHOUSE=$(pwd)
+popd  > /dev/null
+pushd "$PACK_BUILD" > /dev/null
+PACK_BUILD=$(pwd)
+"$ZIP" a "$PACK_WAREHOUSE/$PACKNAME" -tzip
+popd  > /dev/null
 errorlevel=$?
 if [ $errorlevel -ne 0 ]; then
   echo "build aborted: archiving failed"
@@ -181,6 +282,9 @@ fi
 
 echo "build of pack succeeded"
 # Clean up
-echo "cleaning up"
-rm -rf $PACK_BUILD
-rm -rf $UTILITIES_DIR
+echo "cleaning up ..."
+
+rm -rf "$PACK_BUILD"
+echo " "
+
+echo Completed CMSIS-Pack Generation: $(date)

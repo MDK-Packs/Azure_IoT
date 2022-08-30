@@ -20,6 +20,7 @@ Once all files are included in the upstream repository this repository will beco
 ## Prerequisites:
 - git bash (Windows: https://gitforwindows.org/)
 - ZIP archive creation utility (e.g. 7-Zip)
+- CMSIS Pack installed in CMSIS_PACK_ROOT (for PackChk utility)
 - Doxygen version 1.8.6 (https://sourceforge.net/projects/doxygen/files/rel-1.8.6/)
 
 ## Configuration:
