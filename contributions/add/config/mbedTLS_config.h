@@ -1,31 +1,24 @@
+/**
+ * Configuration template
+ */
 /*
- *  Configuration template
+ * Copyright (C) 2006-2022, Arm Limited, All Rights Reserved
+ * SPDX-License-Identifier: Apache-2.0
  *
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
- *  SPDX-License-Identifier: Apache-2.0
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
-/*
- * This set of compile-time options may be used to enable
- * or disable features selectively, and reduce the global
- * memory footprint.
- */
-#ifndef MBEDTLS_CONFIG_H
-#define MBEDTLS_CONFIG_H
+#define MBEDTLS_CONFIG_VERSION 0x03010000
 
 /* System support */
 //#define MBEDTLS_HAVE_ASM
@@ -37,15 +30,18 @@
 /* mbed TLS feature support */
 #define MBEDTLS_ENTROPY_HARDWARE_ALT
 #define MBEDTLS_AES_ROM_TABLES
+//#define MBEDTLS_AES_FEWER_TABLES
 //#define MBEDTLS_CAMELLIA_SMALL_MEMORY
+//#define MBEDTLS_CHECK_RETURN_WARNING
 #define MBEDTLS_CIPHER_MODE_CBC
 //#define MBEDTLS_CIPHER_MODE_CFB
 //#define MBEDTLS_CIPHER_MODE_CTR
+//#define MBEDTLS_CIPHER_MODE_OFB
+//#define MBEDTLS_CIPHER_MODE_XTS
 #define MBEDTLS_CIPHER_PADDING_PKCS7
 //#define MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS
 //#define MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN
 //#define MBEDTLS_CIPHER_PADDING_ZEROS
-#define MBEDTLS_REMOVE_ARC4_CIPHERSUITES
 //#define MBEDTLS_ECP_DP_SECP192R1_ENABLED
 //#define MBEDTLS_ECP_DP_SECP224R1_ENABLED
 #define MBEDTLS_ECP_DP_SECP256R1_ENABLED
@@ -58,7 +54,9 @@
 //#define MBEDTLS_ECP_DP_BP384R1_ENABLED
 //#define MBEDTLS_ECP_DP_BP512R1_ENABLED
 //#define MBEDTLS_ECP_DP_CURVE25519_ENABLED
+//#define MBEDTLS_ECP_DP_CURVE448_ENABLED
 #define MBEDTLS_ECP_NIST_OPTIM
+//#define MBEDTLS_ECP_RESTARTABLE
 #define MBEDTLS_ECDSA_DETERMINISTIC
 //#define MBEDTLS_KEY_EXCHANGE_PSK_ENABLED
 //#define MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED
@@ -79,57 +77,60 @@
 #define MBEDTLS_NO_PLATFORM_ENTROPY
 //#define MBEDTLS_ENTROPY_FORCE_SHA256
 //#define MBEDTLS_ENTROPY_NV_SEED
+//#define MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
 //#define MBEDTLS_MEMORY_DEBUG
 //#define MBEDTLS_MEMORY_BACKTRACE
 #define MBEDTLS_PK_RSA_ALT_SUPPORT
 #define MBEDTLS_PKCS1_V15
 #define MBEDTLS_PKCS1_V21
+//#define MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS
+//#define MBEDTLS_PSA_CRYPTO_CLIENT
+//#define MBEDTLS_PSA_CRYPTO_DRIVERS
+//#define MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
+//#define MBEDTLS_PSA_CRYPTO_SPM
 //#define MBEDTLS_RSA_NO_CRT
 #define MBEDTLS_SELF_TEST
 //#define MBEDTLS_SHA256_SMALLER
+//#define MBEDTLS_SHA512_SMALLER
 #define MBEDTLS_SSL_ALL_ALERT_MESSAGES
+//#define MBEDTLS_SSL_DTLS_CONNECTION_ID
+//#define MBEDTLS_SSL_ASYNC_PRIVATE
+//#define MBEDTLS_SSL_CONTEXT_SERIALIZATION
 //#define MBEDTLS_SSL_DEBUG_ALL
 #define MBEDTLS_SSL_ENCRYPT_THEN_MAC
 #define MBEDTLS_SSL_EXTENDED_MASTER_SECRET
-//#define MBEDTLS_SSL_FALLBACK_SCSV
-//#define MBEDTLS_SSL_HW_RECORD_ACCEL
-//#define MBEDTLS_SSL_CBC_RECORD_SPLITTING
+//#define MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
 #define MBEDTLS_SSL_RENEGOTIATION
-//#define MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO
-//#define MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE
 #define MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
-//#define MBEDTLS_SSL_PROTO_SSL3
-//#define MBEDTLS_SSL_PROTO_TLS1
-//#define MBEDTLS_SSL_PROTO_TLS1_1
 #define MBEDTLS_SSL_PROTO_TLS1_2
+//#define MBEDTLS_SSL_PROTO_TLS1_3
+//#define MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 //#define MBEDTLS_SSL_PROTO_DTLS
 #define MBEDTLS_SSL_ALPN
 //#define MBEDTLS_SSL_DTLS_ANTI_REPLAY
 //#define MBEDTLS_SSL_DTLS_HELLO_VERIFY
+//#define MBEDTLS_SSL_DTLS_SRTP
 //#define MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE
-//#define MBEDTLS_SSL_DTLS_BADMAC_LIMIT
 //#define MBEDTLS_SSL_SESSION_TICKETS
-//#define MBEDTLS_SSL_EXPORT_KEYS
 #define MBEDTLS_SSL_SERVER_NAME_INDICATION
-//#define MBEDTLS_SSL_TRUNCATED_HMAC
+//#define MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
+//#define MBEDTLS_USE_PSA_CRYPTO
+//#define MBEDTLS_PSA_CRYPTO_CONFIG
 #define MBEDTLS_VERSION_FEATURES
-//#define MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3
-//#define MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
-#define MBEDTLS_X509_CHECK_KEY_USAGE
-#define MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE
+//#define MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 //#define MBEDTLS_X509_RSASSA_PSS_SUPPORT
 
 /* mbed TLS modules */
 #define MBEDTLS_AES_C
-//#define MBEDTLS_ARC4_C
 #define MBEDTLS_ASN1_PARSE_C
 #define MBEDTLS_ASN1_WRITE_C
 #define MBEDTLS_BASE64_C
 #define MBEDTLS_BIGNUM_C
-//#define MBEDTLS_BLOWFISH_C
 //#define MBEDTLS_CAMELLIA_C
+//#define MBEDTLS_ARIA_C
 //#define MBEDTLS_CCM_C
-//#define MBEDTLS_CERTS_C
+//#define MBEDTLS_CHACHA20_C
+//#define MBEDTLS_CHACHAPOLY_C
 #define MBEDTLS_CIPHER_C
 //#define MBEDTLS_CMAC_C
 #define MBEDTLS_CTR_DRBG_C
@@ -143,11 +144,10 @@
 #define MBEDTLS_ENTROPY_C
 //#define MBEDTLS_ERROR_C
 #define MBEDTLS_GCM_C
-//#define MBEDTLS_HAVEGE_C
+//#define MBEDTLS_HKDF_C
 #define MBEDTLS_HMAC_DRBG_C
+//#define MBEDTLS_NIST_KW_C
 #define MBEDTLS_MD_C
-//#define MBEDTLS_MD2_C
-//#define MBEDTLS_MD4_C
 //#define MBEDTLS_MD5_C
 //#define MBEDTLS_MEMORY_BUFFER_ALLOC_C
 #define MBEDTLS_NET_C
@@ -158,13 +158,19 @@
 #define MBEDTLS_PK_PARSE_C
 //#define MBEDTLS_PK_WRITE_C
 //#define MBEDTLS_PKCS5_C
-//#define MBEDTLS_PKCS11_C
 //#define MBEDTLS_PKCS12_C
 //#define MBEDTLS_PLATFORM_C
+//#define MBEDTLS_POLY1305_C
+//#define MBEDTLS_PSA_CRYPTO_C
+//#define MBEDTLS_PSA_CRYPTO_SE_C
+//#define MBEDTLS_PSA_CRYPTO_STORAGE_C
+//#define MBEDTLS_PSA_ITS_FILE_C
 //#define MBEDTLS_RIPEMD160_C
 #define MBEDTLS_RSA_C
 #define MBEDTLS_SHA1_C
+#define MBEDTLS_SHA224_C
 #define MBEDTLS_SHA256_C
+//#define MBEDTLS_SHA384_C
 #define MBEDTLS_SHA512_C
 //#define MBEDTLS_SSL_CACHE_C
 //#define MBEDTLS_SSL_COOKIE_C
@@ -182,12 +188,11 @@
 //#define MBEDTLS_X509_CREATE_C
 //#define MBEDTLS_X509_CRT_WRITE_C
 //#define MBEDTLS_X509_CSR_WRITE_C
-//#define MBEDTLS_XTEA_C
 
 /* Module configuration options */
 
 /* MPI / BIGNUM options */
-#define MBEDTLS_MPI_WINDOW_SIZE            1 /**< Maximum windows size used. */
+#define MBEDTLS_MPI_WINDOW_SIZE            1 /**< Maximum window size used. */
 
 /* ECP options */
 #define MBEDTLS_ECP_WINDOW_SIZE            2 /**< Maximum window size used */
@@ -197,8 +202,5 @@
 #define MBEDTLS_ENTROPY_MAX_SOURCES        2 /**< Maximum number of sources supported */
 
 /* SSL options */
-#define MBEDTLS_SSL_MAX_CONTENT_LEN     5000 /**< Maxium fragment length in bytes, determines the size of each of the two internal I/O buffers */
-
-#include "mbedtls/check_config.h"
-
-#endif /* MBEDTLS_CONFIG_H */
+#define MBEDTLS_SSL_IN_CONTENT_LEN      5000 /**< Maximum length (in bytes) of incoming plaintext fragments. */
+#define MBEDTLS_SSL_OUT_CONTENT_LEN     3000 /**< Maximum length (in bytes) of outgoing plaintext fragments. */

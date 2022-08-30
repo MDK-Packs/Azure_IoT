@@ -3,14 +3,12 @@
 
 #include <stdlib.h>
 
-#include "mbedtls/config.h"
+#include "mbedtls/mbedtls_config.h"
 #include "mbedtls/debug.h"
 #include "mbedtls/ssl.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/error.h"
-#include "mbedtls/certs.h"
-#include "mbedtls/entropy_poll.h"
 #include "mbedtls/net_sockets.h"
 
 #include <stdio.h>
@@ -820,7 +818,7 @@ int tlsio_mbedtls_setoption(CONCRETE_IO_HANDLE tls_io, const char* optionName, c
             }
             else if (strcmp(SU_OPTION_X509_PRIVATE_KEY, optionName) == 0 || strcmp(OPTION_X509_ECC_KEY, optionName) == 0)
             {
-                result = mbedtls_pk_parse_key(&tls_io_instance->client_pkey, (const unsigned char *)tls_io_instance->options.x509_key, (int)(strlen(tls_io_instance->options.x509_key) + 1), NULL, 0);
+                result = mbedtls_pk_parse_key(&tls_io_instance->client_pkey, (const unsigned char *)tls_io_instance->options.x509_key, (int)(strlen(tls_io_instance->options.x509_key) + 1), NULL, 0, mbedtls_ctr_drbg_random, &tls_io_instance->ctr_drbg);
                 if (result == 0)
                 {
                     mbedtls_ssl_conf_own_cert(&tls_io_instance->config, &tls_io_instance->client_cert, &tls_io_instance->client_pkey);
